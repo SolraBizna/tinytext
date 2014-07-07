@@ -1,0 +1,212 @@
+gamelicense = "Compatible"
+require "subcritical"
+local cjson = require "cjson"
+
+if #arg ~= 3 then
+   print("Usage: mkdata.scg input.data.json input.png output.decoder.json")
+   os.exit(1)
+end
+
+cjson.decode_invalid_numbers(false)
+cjson.decode_max_depth(3)
+
+local pngloader = assert(SC.Construct("PNGLoader"))
+
+local font = assert(cjson.decode(assert(io.open(SC.Construct("Path",arg[1]),"rb")):read("*a")))
+local graphic = assert(pngloader:Load(SC.Construct("Path",arg[2])))
+
+local function get_pixel(x,y)
+   local res = graphic:GetRawPixelNoAlpha(x,y)
+   if res == 0x000000 then return true
+   elseif res == 0xFFFFFF then return false
+   else return nil end
+end
+
+local max_w = graphic:GetSize()
+
+local chars_using_pixel = {}
+local chars_not_using_pixel = {}
+local chars_of_width = {}
+for x=0,max_w-1 do
+   chars_of_width[x+1] = {}
+   chars_using_pixel[x] = {}
+   chars_not_using_pixel[x] = {}
+   for y=0,font.char_height-1 do
+      chars_using_pixel[x][y] = {}
+      chars_not_using_pixel[x][y] = {}
+   end
+end
+
+local all_chars = {}
+for n=1,#font.chars do
+   local char = font.chars[n]
+   all_chars[char] = true
+   chars_of_width[char.w][char] = true
+   local char_bitmap = SC.Construct("PackedArray2D_B",char.w,font.char_height)
+   for x=0,char.w-1 do
+      for y=0,font.char_height-1 do
+         if get_pixel(char.x+x, char.y+y) then
+            char_bitmap:Set(true, x, y)
+            chars_using_pixel[x][y][char] = true
+         else
+            chars_not_using_pixel[x][y][char] = true
+         end
+      end
+   end
+   for x=char.w,max_w-1 do
+      for y=0,font.char_height-1 do
+         chars_not_using_pixel[x][y][char] = true
+      end
+   end
+end
+
+local function rule_out_more_chars(current_set)
+   if next(current_set) == nil then
+      -- no chars left!
+      return false
+   elseif next(current_set,next(current_set)) == nil then
+      -- only one char left!
+      return next(current_set).char
+   end
+   -- try to find the split point that divides the set most evenly
+   local evenness_factor,candidate_x,candidate_y
+   for x=0,max_w-1 do
+      for y=0,font.char_height-1 do
+         local new_evenness_factor = 0
+         for char in pairs(current_set) do
+            if get_pixel(char.x+x,char.y+y) then
+               new_evenness_factor = new_evenness_factor + 1
+            else
+               new_evenness_factor = new_evenness_factor - 1
+            end
+         end
+         new_evenness_factor = math.abs(new_evenness_factor)
+         if not evenness_factor
+         or new_evenness_factor < evenness_factor then
+            evenness_factor,candidate_x,candidate_y = new_evenness_factor,x,y
+         end
+      end
+   end
+   -- found!
+   local ret = {x=candidate_x,y=candidate_y}
+   local chars_using_target_pixel = {}
+   local chars_lacking_target_pixel = {}
+   for char in pairs(current_set) do
+      if get_pixel(char.x+candidate_x, char.y+candidate_y) then
+         chars_using_target_pixel[char] = true
+      else
+         chars_lacking_target_pixel[char] = true
+      end      
+   end
+   -- if these conditions are not true, we are about to get stuck in a loop
+   -- this will happen if there are duplicate chars, or if I've thought the
+   -- algorithm through incorrectly
+   assert(next(chars_using_target_pixel))
+   assert(next(chars_lacking_target_pixel))
+   ret.t = rule_out_more_chars(chars_using_target_pixel)
+   ret.f = rule_out_more_chars(chars_lacking_target_pixel)
+   return ret
+end
+
+local function rule_out_chars_below_width(width, current_set)
+   local t = {}
+   for char in pairs(current_set) do t[#t+1] = char.char end
+   table.sort(t)
+   if width > max_w then
+      -- no chars will be bigger than the biggest char
+      return rule_out_more_chars(current_set)
+   elseif next(current_set) == nil then
+      -- no chars left!
+      return false
+   elseif next(current_set,next(current_set)) == nil then
+      -- only one char left!
+      return next(current_set).char
+   end
+   -- try to find the split point that divides the set most evenly, among those
+   -- that involve column number `width`
+   local any_chars_remain_using_column = false
+   local x = width
+   local evenness_factor,candidate_x,candidate_y
+   for y=0,font.char_height-1 do
+      local new_evenness_factor = 0
+      for char in pairs(current_set) do
+         if get_pixel(char.x+x,char.y+y) then
+            new_evenness_factor = new_evenness_factor + 1
+            any_chars_remain_using_column = true
+         else
+            new_evenness_factor = new_evenness_factor - 1
+         end
+      end
+      new_evenness_factor = math.abs(new_evenness_factor)
+      if not evenness_factor
+      or new_evenness_factor < evenness_factor then
+         evenness_factor,candidate_x,candidate_y = new_evenness_factor,x,y
+      end
+   end
+   if not any_chars_remain_using_column then
+      -- it seems we've actually advanced to the rule_out_more_chars stage
+      return rule_out_more_chars(current_set)
+   end
+   -- found!
+   local ret = {x=candidate_x,y=candidate_y}
+   local chars_using_target_pixel = {}
+   local chars_lacking_target_pixel = {}
+   for char in pairs(current_set) do
+      if get_pixel(char.x+candidate_x, char.y+candidate_y) then
+         chars_using_target_pixel[char] = true
+      else
+         chars_lacking_target_pixel[char] = true
+      end      
+   end
+   -- if these conditions are not true, we are about to get stuck in a loop
+   -- this will happen if there are duplicate chars, or if I've thought the
+   -- algorithm through incorrectly
+   if next(chars_lacking_target_pixel) == nil
+   or next(chars_using_target_pixel) == nil then
+      -- another way to advance to rule_out_more_chars
+      return rule_out_more_chars(current_set)
+   end
+   -- on the true branch, we've already ruled out chars below this width, so
+   -- we can start ruling out the ones above it
+   ret.t = rule_out_chars_below_width(width+1, chars_using_target_pixel)
+   ret.f = rule_out_chars_below_width(width, chars_lacking_target_pixel)
+   return ret
+end
+
+local output_tree = rule_out_chars_below_width(1, all_chars)
+
+local out = assert(io.open(SC.Construct("Path",arg[3]),"wb"))
+local function outf(format,...) return out:write(format:format(...)) end
+
+-- for debugging
+local function dump_output_tree(dec,depth)
+   io.write((" "):rep(depth*2))
+   if dec == false then
+      io.write("OWARI!?\n")
+   elseif type(dec) == "string" then
+      io.write(("%q\n"):format(dec))
+   else
+      io.write(dec.x..","..dec.y..":\n")
+      dump_output_tree(dec.t, depth+1)
+      dump_output_tree(dec.f, depth+1)
+   end
+end
+
+local max_depth = 0
+local function write_output_tree(dec,depth)
+   max_depth = math.max(depth,max_depth)
+   if dec == false then
+      error("got a dead-end test, why does this test exist?")
+   elseif type(dec) == "string" then
+      outf("%q", dec)
+   else
+      outf("{\"x\":%i,\"y\":%i,\"t\":",dec.x,dec.y)
+      write_output_tree(dec.t, depth+1)
+      outf(",\"f\":")
+      write_output_tree(dec.f, depth+1)
+      outf("}")
+   end
+end
+--dump_output_tree(output_tree,0)
+write_output_tree(output_tree,0)
+print("Maximum decoder tree depth: "..max_depth)

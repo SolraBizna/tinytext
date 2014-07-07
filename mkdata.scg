@@ -1,0 +1,72 @@
+gamelicense = "Compatible"
+require "subcritical"
+
+if #arg ~= 3 then
+   print("Usage: mkdata.scg input_chars.txt input_font.png output.data.json")
+   os.exit(1)
+end
+
+local pngloader = assert(SC.Construct("PNGLoader"))
+
+local chars = assert(io.open(SC.Construct("Path",arg[1]),"r"):read())
+local graphic = assert(pngloader:Load(SC.Construct("Path",arg[2])))
+local gw,gh = graphic:GetSize()
+
+print("Munching "..arg[2].."...")
+
+local function invalid(format,...)
+   return error("Invalid tinytext font: "..format:format(...))
+end
+
+local function get_pixel(x,y)
+   local res = graphic:GetRawPixelNoAlpha(x,y)
+   if res == 0x000000 then return true
+   elseif res == 0xFFFFFF then return false
+   else return nil end
+end
+
+local function line_width(y)
+   for x=0,gw-1 do
+      local pix = get_pixel(x,y)
+      if pix == nil then return x end
+   end
+   return gw
+end
+
+local function line_is_dead(y)
+   -- reached only while finding the character height
+   if y >= gh or y < 0 then return invalid("couldn't find second dead line")end
+   for x=0,gw-1 do
+      local pix = get_pixel(x,y)
+      if pix ~= nil then return false end
+   end
+   return true
+end
+
+local out = assert(io.open(SC.Construct("Path",arg[3]),"wb"))
+local function outf(format,...) return out:write(format:format(...)) end
+
+if not line_is_dead(0) then return invalid("no initial dead line") end
+if line_is_dead(1) then return invalid("two initial dead lines") end
+-- Find out the height of the characters
+local char_height = 1
+while not line_is_dead(char_height+1) do
+   char_height = char_height + 1
+end
+print("Character pixel height: "..char_height)
+outf("{ \"char_height\":%i,\"chars\":[\n", char_height)
+for n=1,#chars do
+   local char = chars:sub(n,n)
+   local start_y = (n-1)*(char_height+1)+1
+   local end_y = start_y + char_height - 1
+   local char_w = line_width(start_y)
+   if char_w == 0 then return invalid("zero-width character") end
+   for y=start_y+1,end_y do
+      if line_width(y) ~= char_w then
+         return invalid("character %q is not rectangular", char)
+      end
+   end
+   outf("  {\"char\":%q,\"x\":0,\"y\":%i,\"w\":%i}%s\n",
+        char, start_y, char_w, n == #chars and "" or ",")
+end
+outf("]}\n")
