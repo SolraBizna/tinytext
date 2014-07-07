@@ -31,7 +31,7 @@ for x=0,max_w-1 do
    chars_of_width[x+1] = {}
    chars_using_pixel[x] = {}
    chars_not_using_pixel[x] = {}
-   for y=0,font.char_height-1 do
+   for y=0,font.h-1 do
       chars_using_pixel[x][y] = {}
       chars_not_using_pixel[x][y] = {}
    end
@@ -42,9 +42,9 @@ for n=1,#font.chars do
    local char = font.chars[n]
    all_chars[char] = true
    chars_of_width[char.w][char] = true
-   local char_bitmap = SC.Construct("PackedArray2D_B",char.w,font.char_height)
+   local char_bitmap = SC.Construct("PackedArray2D_B",char.w,font.h)
    for x=0,char.w-1 do
-      for y=0,font.char_height-1 do
+      for y=0,font.h-1 do
          if get_pixel(char.x+x, char.y+y) then
             char_bitmap:Set(true, x, y)
             chars_using_pixel[x][y][char] = true
@@ -54,7 +54,7 @@ for n=1,#font.chars do
       end
    end
    for x=char.w,max_w-1 do
-      for y=0,font.char_height-1 do
+      for y=0,font.h-1 do
          chars_not_using_pixel[x][y][char] = true
       end
    end
@@ -71,7 +71,7 @@ local function rule_out_more_chars(current_set)
    -- try to find the split point that divides the set most evenly
    local evenness_factor,candidate_x,candidate_y
    for x=0,max_w-1 do
-      for y=0,font.char_height-1 do
+      for y=0,font.h-1 do
          local new_evenness_factor = 0
          for char in pairs(current_set) do
             if get_pixel(char.x+x,char.y+y) then
@@ -127,7 +127,7 @@ local function rule_out_chars_below_width(width, current_set)
    local any_chars_remain_using_column = false
    local x = width
    local evenness_factor,candidate_x,candidate_y
-   for y=0,font.char_height-1 do
+   for y=0,font.h-1 do
       local new_evenness_factor = 0
       for char in pairs(current_set) do
          if get_pixel(char.x+x,char.y+y) then

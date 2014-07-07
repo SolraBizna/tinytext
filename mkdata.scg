@@ -54,7 +54,7 @@ while not line_is_dead(char_height+1) do
    char_height = char_height + 1
 end
 print("Character pixel height: "..char_height)
-outf("{ \"char_height\":%i,\"chars\":[\n", char_height)
+outf("{ \"h\":%i,\"chars\":[\n", char_height)
 for n=1,#chars do
    local char = chars:sub(n,n)
    local start_y = (n-1)*(char_height+1)+1

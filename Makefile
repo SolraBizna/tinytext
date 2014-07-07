@@ -1,9 +1,20 @@
-all: tinytext.data.json tinytext.decoder.json
+all: \
+tinytext.data.json tinytext.decoder.json \
+tinytext.data.h tinytext.decoder.h \
+tinytext.data.lua tinytext.decoder.lua
 
-tinytext.data.json: mkdata.scg tinytext.chars.txt tinytext.png
+%.data.json: mkdata.scg %.chars.txt %.png
+	lua $^ $@
+%.data.h: data2h.lua %.data.json
+	lua $^ $@ $*
+%.data.lua: data2lua.lua %.data.json
 	lua $^ $@
 
-tinytext.decoder.json: mkdecoder.scg tinytext.data.json tinytext.png
+%.decoder.json: mkdecoder.scg %.data.json %.png
+	lua $^ $@
+%.decoder.h: decoder2h.lua %.decoder.json
+	lua $^ $@ $*
+%.decoder.lua: decoder2lua.lua %.decoder.json
 	lua $^ $@
 
 clean:
