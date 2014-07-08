@@ -1,6 +1,5 @@
 gamelicense = "Compatible"
 require "subcritical"
-local cjson = require "cjson"
 
 if #arg ~= 2 then
    print("usage: render_tinytext out.png \"text to render\"")
