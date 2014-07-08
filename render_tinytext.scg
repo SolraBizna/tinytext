@@ -1,0 +1,47 @@
+gamelicense = "Compatible"
+require "subcritical"
+local cjson = require "cjson"
+
+if #arg ~= 2 then
+   print("usage: render_tinytext out.png \"text to render\"")
+   os.exit(1)
+end
+
+local text = arg[2]
+
+local pngloader = assert(SC.Construct("PNGLoader"))
+
+local font = dofile(P"tinytext.data.lua")
+local charmap = {}
+for n=1,#font.chars do charmap[font.chars[n].char] = font.chars[n] end
+local graphic = assert(pngloader:Load(P"tinytext.png"))
+
+local space_width = 2
+
+local out_w = 2
+for n=1,#text do
+   local char = charmap[text:sub(n,n)]
+   if not char then
+      out_w = out_w + space_width + 1
+   else
+      out_w = out_w + char.w + 1
+   end
+end
+
+local output = SC.Construct("Graphic", out_w, font.h + 2)
+output:SetPrimitiveColor(1,1,1)
+output:DrawRect(0,0,output:GetSize())
+
+local x = 1
+for n=1,#text do
+   local char = charmap[text:sub(n,n)]
+   if not char then
+      x = x + space_width + 1
+   else
+      output:Blit(graphic, char.x, char.y, char.w, font.h, x, 1)
+      x = x + char.w + 1
+   end
+end
+
+local outf = assert(io.open(SC.Construct("Path",arg[1]),"wb"))
+assert(SC.Construct("PNGDumper")):Dump(output, outf, outf.write)
