@@ -15,7 +15,7 @@ local charmap = {}
 for n=1,#font.chars do charmap[font.chars[n].char] = font.chars[n] end
 local graphic = assert(pngloader:Load(P"tinytext.png"))
 
-local space_width = 2
+local space_width = 1
 
 local out_w = 2
 for n=1,#text do
