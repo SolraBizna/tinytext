@@ -1,11 +1,9 @@
-local cjson = require "cjson"
-
 if #arg ~= 3 then
-   print("usage: data2h input.data.json output.data.h fontname")
+   print("usage: data2h input.data.lua output.data.h fontname")
    os.exit(1)
 end
 
-local font = assert(cjson.decode(assert(io.open(arg[1],"rb")):read("*a")))
+local font = assert(dofile(arg[1]))
 local out = assert(io.open(arg[2],"wb"))
 local function outf(format,...) return out:write(format:format(...)) end
 

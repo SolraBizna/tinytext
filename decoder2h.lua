@@ -1,11 +1,9 @@
-local cjson = require "cjson"
-
 if #arg ~= 3 then
-   print("usage: decoder2h input.decoder.json output.decoder.h fontname")
+   print("usage: decoder2h input.decoder.lua output.decoder.h fontname")
    os.exit(1)
 end
 
-local decoder = assert(cjson.decode(assert(io.open(arg[1],"rb")):read("*a")))
+local decoder = assert(dofile(arg[1]))
 local out = assert(io.open(arg[2],"wb"))
 local function outf(format,...) return out:write(format:format(...)) end
 

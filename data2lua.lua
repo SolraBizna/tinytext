@@ -1,5 +1,3 @@
-local cjson = require "cjson"
-
 if #arg ~= 2 then
    print("usage: data2lua input.data.json output.data.lua")
    os.exit(1)

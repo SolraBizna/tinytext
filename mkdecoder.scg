@@ -1,18 +1,14 @@
 gamelicense = "Compatible"
 require "subcritical"
-local cjson = require "cjson"
 
 if #arg ~= 3 then
-   print("Usage: mkdata.scg input.data.json input.png output.decoder.json")
+   print("Usage: mkdata.scg input.data.lua input.png output.decoder.json")
    os.exit(1)
 end
 
-cjson.decode_invalid_numbers(false)
-cjson.decode_max_depth(3)
-
 local pngloader = assert(SC.Construct("PNGLoader"))
 
-local font = assert(cjson.decode(assert(io.open(SC.Construct("Path",arg[1]),"rb")):read("*a")))
+local font = assert(dofile(SC.Construct("Path",arg[1])))
 local graphic = assert(pngloader:Load(SC.Construct("Path",arg[2])))
 
 local function get_pixel(x,y)
