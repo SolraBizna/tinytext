@@ -1,0 +1,87 @@
+gamelicense = "Compatible"
+require "subcritical"
+
+if #arg ~= 1 then
+   print("usage: read_tinytext in.png")
+   os.exit(1)
+end
+
+local pngloader = assert(SC.Construct("PNGLoader"))
+local graphic = assert(pngloader:Load(SC.Construct("Path",arg[1])))
+local font_graphic = assert(pngloader:Load(P"tinytext.png"))
+local gw,gh = graphic:GetSize()
+local decoder = dofile(P"tinytext.decoder.lua")
+local font = dofile(P"tinytext.data.lua")
+local charmap = {}
+for n=1,#font.chars do charmap[font.chars[n].char] = font.chars[n] end
+
+local function get_pixel(x,y,g)
+   g = g or graphic
+   if x >= g:GetSize() then return false end
+   local res = g:GetRawPixel(x,y)
+   if res == 0xFF000000 then return true
+   elseif res == 0xFFFFFFFF then return false
+   else return nil end
+end
+
+local function try_decode_char(x,y,dec)
+   dec = dec or decoder
+   if type(dec) == "string" then
+      local char = assert(charmap[dec])
+      if x + char.w > gw then return " " end
+      for y_=0,font.h-1 do
+         for x_=0,char.w-1 do
+            if get_pixel(x_+x,y_+y) ~= get_pixel(x_+char.x,y_+char.y,font_graphic) then return " " end
+         end
+         if get_pixel(char.w+x,y_+y) ~= false then return " " end
+      end
+      for x_=0,char.w do
+         if get_pixel(x_+x,font.h+y) ~= false then return " " end
+      end
+      return dec
+   else
+      local p
+      if x + dec.x >= gw then
+         p = false
+      else
+         p = get_pixel(x+dec.x,y+dec.y)
+      end
+      if p == true then
+         return try_decode_char(x,y,dec.t)
+      elseif p == false then
+         return try_decode_char(x,y,dec.f)
+      else
+         return " "
+      end
+   end
+end
+
+local y = 1
+repeat
+   if try_decode_char(1,y):match("[A-Z0-9]") then
+      local x = 1
+      local last_char_was_space
+      repeat
+         local char = try_decode_char(x,y)
+         if char == " " then
+            if last_char_was_space then
+               -- do nothing
+            else
+               last_char_was_space = true
+            end
+            x = x + 1
+         else
+            if last_char_was_space then
+               io.write(" ")
+               last_char_was_space = false
+            end
+            io.write(char)
+            x = x + 1 + charmap[char].w
+         end
+      until x >= gw
+      print()
+      y = y + font.h + 1
+   else
+      y = y + 1
+   end
+until y > gh-font.h
