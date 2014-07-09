@@ -5,4 +5,4 @@ end
 
 local font = assert(io.open(arg[1],"rb")):read("*a")
 local out = assert(io.open(arg[2],"wb"))
-out:write("return "..font:gsub("\"([a-z]+)\":", "%1="):gsub("[][]",{["["]="{",["]"]="}"}))
+out:write("return "..font:gsub("\"([a-z]+)\":", "%1="):gsub("=%[","={"):gsub("]}","}}"))
