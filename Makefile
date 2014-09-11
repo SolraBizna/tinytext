@@ -2,7 +2,11 @@ all: \
 tinytext.data.json tinytext.decoder.json \
 tinytext.data.h tinytext.decoder.h \
 tinytext.data.lua tinytext.decoder.lua \
-tinytext.pixels.h
+tinytext.pixels.h \
+tinytext_mixed.data.json tinytext_mixed.decoder.json \
+tinytext_mixed.data.h tinytext_mixed.decoder.h \
+tinytext_mixed.data.lua tinytext_mixed.decoder.lua \
+tinytext_mixed.pixels.h
 
 %.data.json: mkdata.scg %.chars.txt %.png
 	lua $^ $@
