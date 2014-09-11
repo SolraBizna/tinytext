@@ -1,0 +1,46 @@
+gamelicense = "Compatible"
+require "subcritical"
+
+if #arg ~= 3 then
+   print("Usage: pixels2h.scg input_font.png output.pixels.h basename")
+   os.exit(1)
+end
+
+local pngloader = assert(SC.Construct("PNGLoader"))
+
+local graphic = assert(pngloader:Load(SC.Construct("Path",arg[1])))
+local gw,gh = graphic:GetSize()
+
+local function get_pixel(x,y)
+   local res = graphic:GetRawPixelNoAlpha(x,y)
+   if res == 0x000000 then return 1
+   elseif res == 0xFFFFFF then return 0
+   else return 2 end
+end
+
+local out = assert(io.open(SC.Construct("Path",arg[2]),"wb"))
+local function outf(format,...) return out:write(format:format(...)) end
+
+outf([[
+static const struct %s_pixels {
+  short w, h;
+  unsigned char data[%i][%i];
+} %s_pixels = { %i, %i, {
+]],arg[3], gw, gh, arg[3], gw, gh)
+for y=0,gh-1 do
+   outf("  {")
+   local nontwo_len = 0
+   for x=0,gw-1 do
+      if get_pixel(x,y) ~= 2 then
+         nontwo_len = x+1
+      end
+   end
+   for x=0,nontwo_len-2 do
+      outf("%i,", get_pixel(x,y))
+   end
+   if nontwo_len > 0 then
+      outf("%i", get_pixel(nontwo_len-1,y))
+   end
+   outf("},\n")
+end
+outf("}};\n")

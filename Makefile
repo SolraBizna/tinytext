@@ -1,7 +1,8 @@
 all: \
 tinytext.data.json tinytext.decoder.json \
 tinytext.data.h tinytext.decoder.h \
-tinytext.data.lua tinytext.decoder.lua
+tinytext.data.lua tinytext.decoder.lua \
+tinytext.pixels.h
 
 %.data.json: mkdata.scg %.chars.txt %.png
 	lua $^ $@
@@ -16,6 +17,9 @@ tinytext.data.lua tinytext.decoder.lua
 	lua $^ $@ $*
 %.decoder.lua: decoder2lua.lua %.decoder.json
 	lua $^ $@
+
+%.pixels.h: pixels2h.scg %.png
+	lua $^ $@ $*
 
 clean:
 	rm -f *.*.json *.*.h *.*.lua
