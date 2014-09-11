@@ -11,7 +11,7 @@ outf([[
 struct %s_decoder_node {
   char c; // if non-zero, terminate decoding and guess this char
   // otherwise, test the pixel given by x,y and descend according to the result
-  int x, y;
+  short x, y;
   struct %s_decoder_node* t, *f;
 };
 ]], arg[3], arg[3])
