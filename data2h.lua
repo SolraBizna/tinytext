@@ -21,6 +21,6 @@ static const struct %s_data {
 ]], arg[3], arg[3], #font.chars, arg[3], font.h, #font.chars)
 for n=1,#font.chars do
    local char = font.chars[n]
-   outf("  {'%s', %i, %i, %i},\n", char.char, char.x, char.y, char.w);
+   outf("  {'%s', %i, %i, %i},\n", char.char == "\\" and "\\\\" or char.char, char.x, char.y, char.w);
 end
 outf("};\n")

@@ -1,7 +1,7 @@
 static const struct tinytext_mixed_pixels {
   short w, h;
-  unsigned char data[6][481];
-} tinytext_mixed_pixels = { 6, 481, {
+  unsigned char data[6][487];
+} tinytext_mixed_pixels = { 6, 487, {
   {},
   {0,1,0},
   {1,0,1},
@@ -482,5 +482,11 @@ static const struct tinytext_mixed_pixels {
   {0,1,0,1,0},
   {1,1,1,1,1},
   {0,1,0,1,0},
+  {},
+  {0,0,0},
+  {0,0,0},
+  {0,0,0},
+  {0,0,0},
+  {1,1,1},
   {},
 }};
