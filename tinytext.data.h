@@ -5,7 +5,7 @@ struct tinytext_char {
 static const struct tinytext_data {
   short h, char_count;
   struct tinytext_char chars[55];
-} tinytext_data = { 5, 55,
+} tinytext_data = { 5, 55, {
   {'A', 0, 1, 3},
   {'B', 0, 7, 3},
   {'C', 0, 13, 3},
@@ -61,4 +61,4 @@ static const struct tinytext_data {
   {'{', 0, 313, 3},
   {'}', 0, 319, 3},
   {'#', 0, 325, 5},
-};
+}};

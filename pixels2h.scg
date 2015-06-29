@@ -26,7 +26,7 @@ static const struct %s_pixels {
   short w, h;
   unsigned char data[%i][%i];
 } %s_pixels = { %i, %i, {
-]],arg[3], gw, gh, arg[3], gw, gh)
+]],arg[3], gh, gw, arg[3], gw, gh)
 for y=0,gh-1 do
    outf("  {")
    local nontwo_len = 0

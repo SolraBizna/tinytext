@@ -5,7 +5,7 @@ struct tinytext_mixed_char {
 static const struct tinytext_mixed_data {
   short h, char_count;
   struct tinytext_mixed_char chars[80];
-} tinytext_mixed_data = { 5, 80,
+} tinytext_mixed_data = { 5, 80, {
   {'A', 0, 1, 3},
   {'B', 0, 7, 3},
   {'C', 0, 13, 3},
@@ -86,4 +86,4 @@ static const struct tinytext_mixed_data {
   {'{', 0, 463, 3},
   {'}', 0, 469, 3},
   {'#', 0, 475, 5},
-};
+}};
