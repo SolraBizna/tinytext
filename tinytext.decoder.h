@@ -2,7 +2,7 @@ struct tinytext_decoder_node {
   char c; // if non-zero, terminate decoding and guess this char
   // otherwise, test the pixel given by x,y and descend according to the result
   short x, y;
-  struct tinytext_decoder_node* t, *f;
+  const struct tinytext_decoder_node* t, *f;
 };
 static const struct tinytext_decoder_node tinytext_decoder_ttt = {'#',0,0,NULL,NULL};
 static const struct tinytext_decoder_node tinytext_decoder_ttftttt = {'B',0,0,NULL,NULL};
@@ -22,7 +22,7 @@ static const struct tinytext_decoder_node tinytext_decoder_ttffttt = {'5',0,0,NU
 static const struct tinytext_decoder_node tinytext_decoder_ttffttf = {'3',0,0,NULL,NULL};
 static const struct tinytext_decoder_node tinytext_decoder_ttfftt = {0,0,1,&tinytext_decoder_ttffttt,&tinytext_decoder_ttffttf};
 static const struct tinytext_decoder_node tinytext_decoder_ttfftft = {'X',0,0,NULL,NULL};
-static const struct tinytext_decoder_node tinytext_decoder_ttfftff = {'\',0,0,NULL,NULL};
+static const struct tinytext_decoder_node tinytext_decoder_ttfftff = {'\\',0,0,NULL,NULL};
 static const struct tinytext_decoder_node tinytext_decoder_ttfftf = {0,0,3,&tinytext_decoder_ttfftft,&tinytext_decoder_ttfftff};
 static const struct tinytext_decoder_node tinytext_decoder_ttfft = {0,1,0,&tinytext_decoder_ttfftt,&tinytext_decoder_ttfftf};
 static const struct tinytext_decoder_node tinytext_decoder_ttffft = {'8',0,0,NULL,NULL};
