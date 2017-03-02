@@ -347,7 +347,7 @@ static const struct tinytext_mixed_pixels {
   {},
   {1,1,1},
   {1,0,0},
-  {0,1,0},
+  {1,1,0},
   {0,0,1},
   {1,1,0},
   {},
